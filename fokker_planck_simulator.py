@@ -190,29 +190,7 @@ class FokkerPlanckSimulator:
             entropies.append(self.Wehr_Entropy(t_idx))
 
         return np.array(self.time_values), np.array(entropies)
-
-    def expectation_value(self, coeff_matrix, t_idx):
-        A = self.characteristic_matrix(t_idx)
-        D, ave_vec, a_new, P = self.Dignolize_Characteristic_Matrix(A)
-        
-        P_inv = np.linalg.inv(P)
-        
-        result = 1
-        for i in range(len(D)):
-            result = result * (np.pi / (-D[i,i]))**0.5
-        
-        U0 = coeff_matrix[0,0]
-        ua = coeff_matrix[0,1:] + coeff_matrix[1:,0].T
-        UA = np.diag(ua)
-        UB = np.array(coeff_matrix[1:,1:])
-        
-        converted_coeff = P_inv @ UB @ P
-        coeff = U0 + (np.ones(len(D)) @ UA @ P) @ ave_vec.T + (ave_vec @ converted_coeff) @ ave_vec.T
-        for i in range(len(D)):
-            coeff = coeff + converted_coeff[i,i] / (-2 * D[i,i])
-        
-        return result * np.exp(a_new) * coeff
-    
+      
     def convert_coeff_vec(self, vars_sym, Func_sym):
         coeff_vec = np.zeros(len(vars_sym))
         for i in range(len(vars_sym)):
@@ -236,14 +214,38 @@ class FokkerPlanckSimulator:
         coeff_matrix = np.array(coeff_matrix)
         return coeff_matrix
     
+    def expectation_value(self, coeff_matrix, t_idx):
+        A = self.characteristic_matrix(t_idx)
+        D, ave_vec, a_new, P = self.Dignolize_Characteristic_Matrix(A)
+
+        # Compute determinant factor efficiently
+        result = np.prod(np.sqrt(np.pi / -np.diag(D)))
+
+        U0 = coeff_matrix[0, 0]
+        ua = coeff_matrix[0, 1:] + coeff_matrix[1:, 0].T
+        UB = coeff_matrix[1:, 1:]
+
+        # Faster transformation without explicit inversion
+        converted_coeff = P.T @ UB @ P  
+
+        # Optimized calculations
+        PA_ave_vec = np.einsum('i,ij->j', ua, P) @ ave_vec  
+        coeff = U0 + np.sum(PA_ave_vec) + np.einsum('i,ij,j->', ave_vec, converted_coeff, ave_vec)
+
+        # Efficient diagonal sum
+        coeff += np.sum(np.diag(converted_coeff) / (-2 * np.diag(D)))
+
+        return result * np.exp(a_new) * coeff
+
     def expectation_value_alltime(self, vars_sym, Exp_Func):
         Func_sym = sp.expand(Exp_Func(vars_sym))  
         coeff_matrix = self.convert_coeff_matrix(vars_sym, Func_sym)
-        values = []
-        for t_idx in tqdm(range(len(self.time_values)), desc="Computing Expectation Values"):
-            values.append(self.expectation_value(coeff_matrix, t_idx))
 
-        return np.array(self.time_values), np.array(values)
+        # Precompute values using parallel processing
+        time_indices = np.arange(len(self.time_values))
+        values = np.array([self.expectation_value(coeff_matrix, t_idx) for t_idx in tqdm(time_indices, desc="Computing Expectation Values")])
+
+        return np.array(self.time_values), values
     
     def expectation_value_final(self, vars_sym, Exp_Func):
         Func_sym = sp.expand(Exp_Func(vars_sym))  

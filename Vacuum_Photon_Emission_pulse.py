@@ -51,8 +51,8 @@ omega_value = np.pi
 m_th_value = 0
 
 #   Time parameter
-t_start = -10
-t_end = 0.5
+t_start = -100
+t_end = 1
 dt= 0.001
 times = np.linspace(t_start,t_end,int((t_end-t_start)/dt))
 simulation_time_setting = t_start, t_end, dt
@@ -139,11 +139,12 @@ simulator.initialize(init_func_parameter=init_func_parameter)
 # Run the simulation
 simulator.run_simulation(system_time_evolution=system_time_evolution, 
                         output_dir="Q_rep_VacuumPhoton_pulse", 
-                        pure_parameter=False, vars_sym = [unity, x, y, u, v], Map_func = map_func_photon)
-time, entropy = simulator.Wehr_Entropy_all_time()
+                        pure_parameter=True)
+
+
+"""time, entropy = simulator.Wehr_Entropy_all_time()
 plt.plot(time, entropy)
-plt.show()
-"""simulator.plot_centroid_path()
+plt.show()"""
 
 def cavity_photon_number(vars):
     unity, x, y, u, v= vars
@@ -154,6 +155,7 @@ fig, ax1 = plt.subplots()
 ax1.plot(ts, cavity_photon, label="Cavity Photon Number", color='b')
 ax1.set_xlabel(r'Time (ps)')
 ax1.set_ylabel(r'Photon Number', color='b')
+ax1.set_xlim([-1,1])
 ax1.tick_params(axis='y', labelcolor='b')
 
 # Create a second y-axis for pulse field strength
@@ -166,4 +168,4 @@ ax2.tick_params(axis='y', labelcolor='r')
 # Add legends
 fig.legend(loc="upper right", bbox_to_anchor=(1,1), bbox_transform=ax1.transAxes)
 
-plt.show()"""
+plt.show()

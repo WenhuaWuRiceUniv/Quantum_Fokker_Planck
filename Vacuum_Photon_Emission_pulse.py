@@ -51,7 +51,7 @@ omega_value = np.pi
 m_th_value = 0
 
 #   Time parameter
-t_start = -100
+t_start = -40
 t_end = 1
 dt= 0.001
 times = np.linspace(t_start,t_end,int((t_end-t_start)/dt))
@@ -133,7 +133,7 @@ def map_func_matter(vars):
 pulse_field = pulse(times)
 
 #   Plot the snapshots of the system evolution
-init_func_parameter = SymSolver.init_func_parameter(init_cond=[0, 0, n_th_value, 0, 0, m_th_value], state_name='thermal', representation='Q')
+init_func_parameter = SymSolver.init_func_parameter(init_cond=[0, 0, 0.1, 0, 0, 0.1], state_name='thermal', representation='Q')
 simulator.initialize(init_func_parameter=init_func_parameter)
     
 # Run the simulation
@@ -142,11 +142,11 @@ simulator.run_simulation(system_time_evolution=system_time_evolution,
                         pure_parameter=True)
 
 
-"""time, entropy = simulator.Wehr_Entropy_all_time()
+time, entropy = simulator.Wehrl_Entropy_all_time()
 plt.plot(time, entropy)
-plt.show()"""
+plt.show()
 
-def cavity_photon_number(vars):
+"""def cavity_photon_number(vars):
     unity, x, y, u, v= vars
     return x*x + y*y - unity*unity
 ts, cavity_photon = simulator.expectation_value_alltime(vars, cavity_photon_number)
@@ -168,4 +168,4 @@ ax2.tick_params(axis='y', labelcolor='r')
 # Add legends
 fig.legend(loc="upper right", bbox_to_anchor=(1,1), bbox_transform=ax1.transAxes)
 
-plt.show()
+plt.show()"""

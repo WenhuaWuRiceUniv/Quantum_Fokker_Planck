@@ -176,18 +176,18 @@ class FokkerPlanckSimulator:
 
         return A
     
-    def Wehr_Entropy(self,t_idx):
+    def Wehrl_Entropy(self,t_idx):
         A = self.characteristic_matrix(t_idx)
         D, ave_vec, a_new, P = self.Dignolize_Characteristic_Matrix(A)
         result = 1
         for i in range(len(D)):
             result = result * (np.pi / (-D[i,i]))**0.5
-        return - (a_new + 1/2. * len(D)) * np.exp(a_new) *result
+        return - (a_new - 1/2. * len(D)) * np.exp(a_new) *result
     
-    def Wehr_Entropy_all_time(self):
+    def Wehrl_Entropy_all_time(self):
         entropies = []
         for t_idx in tqdm(range(len(self.time_values)), desc="Computing Expectation Values"):
-            entropies.append(self.Wehr_Entropy(t_idx))
+            entropies.append(self.Wehrl_Entropy(t_idx))
 
         return np.array(self.time_values), np.array(entropies)
       
